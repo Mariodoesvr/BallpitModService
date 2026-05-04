@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ballpit Moderation Dashboard</title>
+<title>Ballpit Mod Dash</title>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -14,6 +14,7 @@ body {
     color: white;
 }
 
+/* LOGIN */
 #loginScreen {
     position: absolute;
     width: 100%;
@@ -47,6 +48,13 @@ button {
     cursor: pointer;
 }
 
+.card {
+    background: #151b23;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -60,37 +68,35 @@ td, th {
 .block { color: #ff4d4d; }
 .report { color: #ffb84d; }
 .accept { color: #4dff88; }
-
-.card {
-    background: #151b23;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 8px;
-}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="loginScreen">
 
-    <h2>Moderator Login</h2>
+    <h1>🎮 Ballpit Mod Dash</h1>
+    <h3>Moderator Login</h3>
 
-    <!-- GOOGLE -->
+    <!-- GOOGLE SIGN-IN (popup mode = same tab experience) -->
     <div id="g_id_onload"
          data-client_id="YOUR_GOOGLE_CLIENT_ID"
          data-callback="handleGoogleLogin"
-         data-auto_prompt="true">
+         data-auto_prompt="false"
+         data-ux_mode="popup">
     </div>
 
-    <div class="g_id_signin"></div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-theme="filled_blue"
+         data-size="large">
+    </div>
 
     <hr style="width:200px; margin:20px 0; opacity:0.3;">
 
     <!-- SECRET CODE -->
     <h3>Use secret code</h3>
-
     <input id="secretCode" placeholder="Enter code">
     <button id="codeLoginBtn">Login</button>
 
@@ -100,7 +106,7 @@ td, th {
 <!-- DASHBOARD -->
 <div id="dashboard">
 
-    <h2>Ballpit Moderation Dashboard</h2>
+    <h2>🛡 Ballpit Mod Dash</h2>
 
     <div class="card">
         <h3>Total Logs: <span id="totalLogs">0</span></h3>
@@ -133,18 +139,9 @@ const API = "http://localhost:3000";
 let authenticated = false;
 
 /* -------------------------
-   FORCE LOGIN
---------------------------*/
-window.onload = () => {
-    document.getElementById("loginScreen").style.display = "flex";
-    document.getElementById("dashboard").style.display = "none";
-};
-
-/* -------------------------
    GOOGLE LOGIN
 --------------------------*/
 async function handleGoogleLogin(response) {
-
     const res = await fetch(API + "/auth", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -156,19 +153,18 @@ async function handleGoogleLogin(response) {
     if (data.success) {
         loginSuccess();
     } else {
-        document.getElementById("loginStatus").innerText =
-            "Access denied";
+        document.getElementById("loginStatus").innerText = "Access denied";
     }
 }
 
 /* -------------------------
-   SECRET CODE LOGIN (FIXED)
+   SECRET CODE LOGIN
 --------------------------*/
 async function loginWithCode() {
     const code = document.getElementById("secretCode").value;
 
     if (!code) {
-        document.getElementById("loginStatus").innerText = "Enter code";
+        document.getElementById("loginStatus").innerText = "Enter a code";
         return;
     }
 
@@ -184,13 +180,11 @@ async function loginWithCode() {
         if (data.success) {
             loginSuccess();
         } else {
-            document.getElementById("loginStatus").innerText =
-                "Invalid code";
+            document.getElementById("loginStatus").innerText = "Invalid code";
         }
 
     } catch {
-        document.getElementById("loginStatus").innerText =
-            "Server error";
+        document.getElementById("loginStatus").innerText = "Server error";
     }
 }
 
@@ -248,7 +242,7 @@ async function load() {
 }
 
 /* -------------------------
-   CLEAR LOGS
+   CLEAR
 --------------------------*/
 async function clearLogs() {
     await fetch(API + "/clear", { method: "POST" });
@@ -256,7 +250,7 @@ async function clearLogs() {
 }
 
 /* -------------------------
-   FIXED BUTTON HANDLER
+   BUTTON FIX
 --------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
     document

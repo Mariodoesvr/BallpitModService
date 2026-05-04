@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Moderation Dashboard</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0f1115;
+    color: #e6e6e6;
+}
+
+/* Header */
+.header {
+    padding: 16px;
+    background: #1a1d24;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 18px;
+    margin: 0;
+}
+
+button {
+    background: #2b6cff;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1f5ae0;
+}
+
+/* Container */
+.container {
+    padding: 16px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #151821;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th {
+    text-align: left;
+    background: #1f2330;
+    padding: 12px;
+    font-size: 13px;
+    color: #aaa;
+}
+
+td {
+    padding: 12px;
+    border-top: 1px solid #222633;
+    font-size: 13px;
+}
+
+/* Type colors */
+.block { color: #ff4d4d; font-weight: bold; }
+.report { color: #ffb84d; font-weight: bold; }
+.accept { color: #4dff88; }
+
+/* Filters */
+input {
+    background: #1a1d24;
+    border: 1px solid #2a2f3a;
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+    width: 250px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>🛡 Moderation Dashboard</h1>
+    <div>
+        <input id="search" placeholder="Search player..." oninput="loadLogs()" />
+        <button onclick="loadLogs()">Refresh</button>
+        <button onclick="clearLogs()">Clear</button>
+    </div>
+</div>
+
+<div class="container">
+<table>
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Player</th>
+            <th>Reason</th>
+            <th>Data</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody id="logTable"></tbody>
+</table>
+</div>
+
+<script>
+const API = "http://localhost:3000";
+
+async function loadLogs() {
+    const res = await fetch(API + "/logs");
+    let logs = await res.json();
+
+    const search = document.getElementById("search").value.toLowerCase();
+
+    if (search) {
+        logs = logs.filter(l =>
+            l.playerName.toLowerCase().includes(search)
+        );
+    }
+
+    const table = document.getElementById("logTable");
+    table.innerHTML = "";
+
+    logs.reverse().forEach(log => {
+        const row = document.createElement("tr");
+
+        let typeClass =
+            log.type.includes("block") ? "block" :
+            log.type.includes("report") ? "report" :
+            "accept";
+
+        row.innerHTML = `
+            <td class="${typeClass}">${log.type}</td>
+            <td>${log.playerName}</td>
+            <td>${log.reason}</td>
+            <td>${log.data || ""}</td>
+            <td>${new Date(log.timestamp).toLocaleString()}</td>
+        `;
+
+        table.appendChild(row);
+    });
+}
+
+async function clearLogs() {
+    await fetch(API + "/clear", { method: "POST" });
+    loadLogs();
+}
+
+loadLogs();
+setInterval(loadLogs, 3000);
+</script>
+
+</body>
+</html>

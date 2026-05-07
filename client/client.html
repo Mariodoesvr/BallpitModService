@@ -77,7 +77,7 @@ const API = "https://ballpitmodservice.onrender.com";
 /* -------------------------
    WEBSOCKET (REALTIME)
 --------------------------*/
-const socket = new WebSocket("ws://localhost:3000");
+const socket = new WebSocket("wss://ballpitmodservice.onrender.com");
 
 socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);

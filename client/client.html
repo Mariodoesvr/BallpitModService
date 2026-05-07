@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>The Ballpit ModerationDash</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0b0f14;
+    color: white;
+}
+
+#dashboard {
+    padding: 20px;
+}
+
+.card {
+    background: #151b23;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td, th {
+    padding: 10px;
+    border-bottom: 1px solid #222;
+}
+
+.block { color: #ff4d4d; }
+.report { color: #ffb84d; }
+.accept { color: #4dff88; }
+</style>
+</head>
+
+<body>
+
+<div id="dashboard">
+
+    <h2>🛡 The Ballpit Moderation</h2>
+
+    <div class="card">
+        <h3>Total Logs: <span id="totalLogs">0</span></h3>
+        <pre id="stats"></pre>
+    </div>
+
+    <div class="card">
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Player</th>
+                    <th>Reason</th>
+                    <th>Data</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="logTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+const API = "http://localhost:3000";
+
+/* -------------------------
+   WEBSOCKET (REALTIME)
+--------------------------*/
+const socket = new WebSocket("ws://localhost:3000");
+
+socket.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+
+    if (msg.type === "log") {
+        addLog(msg.data);
+    }
+};
+
+/* -------------------------
+   LOAD INITIAL DATA
+--------------------------*/
+async function load() {
+    const logs = await fetch(API + "/logs").then(r => r.json());
+    const stats = await fetch(API + "/stats").then(r => r.json());
+
+    document.getElementById("totalLogs").innerText = stats.totalLogs;
+
+    document.getElementById("stats").innerText =
+        JSON.stringify(stats.breakdown, null, 2);
+
+    logs.forEach(addLog);
+}
+
+load();
+
+/* -------------------------
+   ADD LOG
+--------------------------*/
+function addLog(l) {
+    const table = document.getElementById("logTable");
+
+    const row = document.createElement("tr");
+
+    const cls =
+        l.type?.includes("block") ? "block" :
+        l.type?.includes("report") ? "report" :
+        "accept";
+
+    row.innerHTML = `
+        <td class="${cls}">${l.type}</td>
+        <td>${l.playerName}</td>
+        <td>${l.reason}</td>
+        <td>${l.data || ""}</td>
+        <td>${l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : ""}</td>
+    `;
+
+    table.prepend(row);
+}
+
+/* -------------------------
+   CLEAR LOGS
+--------------------------*/
+async function clearLogs() {
+    await fetch(API + "/clear", { method: "POST" });
+    document.getElementById("logTable").innerHTML = "";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "the-ballpit-mod-system",
+  "version": "1.0.0",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7",
+    "ws": "^8.18.0",
+    "google-auth-library": "^9.11.0",
+    "node-fetch": "^2.7.0"
+  }
+}

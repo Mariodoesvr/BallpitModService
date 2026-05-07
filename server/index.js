@@ -8,7 +8,11 @@ const { initWebSocket, broadcastLog } = require("./websocket");
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        "https://mariodoesvr.github.io"
+    ]
+}));
 app.use(express.json());
 
 /* -------------------------

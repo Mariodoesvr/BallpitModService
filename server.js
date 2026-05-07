@@ -1,11 +1,14 @@
-const express = require("express");const express = require("express");
+const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+
+app.use(cors({
+    origin: "*"
+}));
+
+app.use(express.json());
 
 const client = new OAuth2Client("YOUR_GOOGLE_CLIENT_ID");
 
@@ -31,7 +34,7 @@ app.post("/auth", async (req, res) => {
         });
 
         const payload = ticket.getPayload();
-        const email = payload.email;
+        const email = payload?.email;
 
         if (MOD_EMAILS.includes(email)) {
             return res.json({ success: true });
@@ -39,7 +42,7 @@ app.post("/auth", async (req, res) => {
 
         return res.json({ success: false });
 
-    } catch {
+    } catch (err) {
         return res.json({ success: false });
     }
 });
@@ -58,10 +61,10 @@ app.post("/code-auth", (req, res) => {
 });
 
 /* -------------------------
-   RECEIVE UNITY LOGS
+   RECEIVE LOGS
 --------------------------*/
 app.post("/log", (req, res) => {
-    const log = req.body;
+    const log = req.body || {};
 
     log.timestamp = Date.now();
     logs.push(log);
@@ -79,14 +82,14 @@ app.get("/logs", (req, res) => {
 });
 
 /* -------------------------
-   ANALYTICS
+   STATS
 --------------------------*/
 app.get("/stats", (req, res) => {
     const breakdown = {};
 
-    logs.forEach(l => {
+    for (const l of logs) {
         breakdown[l.type] = (breakdown[l.type] || 0) + 1;
-    });
+    }
 
     res.json({
         totalLogs: logs.length,
@@ -95,7 +98,7 @@ app.get("/stats", (req, res) => {
 });
 
 /* -------------------------
-   CLEAR LOGS
+   CLEAR
 --------------------------*/
 app.post("/clear", (req, res) => {
     logs = [];

@@ -14,7 +14,6 @@ body {
     color: white;
 }
 
-/* LOGIN */
 #loginScreen {
     position: absolute;
     width: 100%;
@@ -73,13 +72,11 @@ td, th {
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen">
 
     <h1>Ballpit Mod Dash</h1>
     <h3>Moderator Login</h3>
 
-    <!-- GOOGLE SIGN-IN (popup mode = same tab experience) -->
     <div id="g_id_onload"
          data-client_id="226975407319-nki7l6tnjrq504renta1tahe1g5dma42.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -95,7 +92,6 @@ td, th {
 
     <hr style="width:200px; margin:20px 0; opacity:0.3;">
 
-    <!-- SECRET CODE -->
     <h3>Use secret code</h3>
     <input id="secretCode" placeholder="Enter code">
     <button id="codeLoginBtn">Login</button>
@@ -103,7 +99,6 @@ td, th {
     <p id="loginStatus"></p>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard">
 
     <h2>🛡 Ballpit Mod Dash</h2>
@@ -139,23 +134,27 @@ const API = "http://localhost:3000";
 let authenticated = false;
 
 /* -------------------------
-   GOOGLE LOGIN
+   GOOGLE LOGIN (FIXED)
 --------------------------*/
-async function handleGoogleLogin(response) {
-    const res = await fetch(API + "/auth", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ token: response.credential })
-    });
+window.handleGoogleLogin = async function(response) {
+    try {
+        const res = await fetch(`${API}/auth`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ token: response.credential })
+        });
 
-    const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
-    if (data.success) {
-        loginSuccess();
-    } else {
-        document.getElementById("loginStatus").innerText = "Access denied";
+        if (data.success) {
+            loginSuccess();
+        } else {
+            document.getElementById("loginStatus").innerText = "Access denied";
+        }
+    } catch (err) {
+        document.getElementById("loginStatus").innerText = "Auth error";
     }
-}
+};
 
 /* -------------------------
    SECRET CODE LOGIN
@@ -169,13 +168,13 @@ async function loginWithCode() {
     }
 
     try {
-        const res = await fetch(API + "/code-auth", {
+        const res = await fetch(`${API}/code-auth`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ code })
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (data.success) {
             loginSuccess();
@@ -193,10 +192,8 @@ async function loginWithCode() {
 --------------------------*/
 function loginSuccess() {
     authenticated = true;
-
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
-
     startDashboard();
 }
 
@@ -211,50 +208,54 @@ function startDashboard() {
 async function load() {
     if (!authenticated) return;
 
-    const logs = await fetch(API + "/logs").then(r => r.json());
-    const stats = await fetch(API + "/stats").then(r => r.json());
+    try {
+        const logsRes = await fetch(`${API}/logs`);
+        const statsRes = await fetch(`${API}/stats`);
 
-    document.getElementById("totalLogs").innerText = stats.totalLogs;
-    document.getElementById("stats").innerText =
-        JSON.stringify(stats.breakdown, null, 2);
+        const logs = await logsRes.json().catch(() => []);
+        const stats = await statsRes.json().catch(() => ({ totalLogs: 0, breakdown: {} }));
 
-    const table = document.getElementById("logTable");
-    table.innerHTML = "";
+        document.getElementById("totalLogs").innerText = stats.totalLogs ?? 0;
+        document.getElementById("stats").innerText =
+            JSON.stringify(stats.breakdown ?? {}, null, 2);
 
-    logs.slice().reverse().forEach(l => {
-        const row = document.createElement("tr");
+        const table = document.getElementById("logTable");
+        table.innerHTML = "";
 
-        const cls =
-            l.type.includes("block") ? "block" :
-            l.type.includes("report") ? "report" :
-            "accept";
+        (logs || []).slice().reverse().forEach(l => {
+            const row = document.createElement("tr");
 
-        row.innerHTML = `
-            <td class="${cls}">${l.type}</td>
-            <td>${l.playerName}</td>
-            <td>${l.reason}</td>
-            <td>${l.data || ""}</td>
-            <td>${new Date(l.timestamp).toLocaleTimeString()}</td>
-        `;
+            const cls =
+                l.type?.includes("block") ? "block" :
+                l.type?.includes("report") ? "report" :
+                "accept";
 
-        table.appendChild(row);
-    });
+            row.innerHTML = `
+                <td class="${cls}">${l.type ?? ""}</td>
+                <td>${l.playerName ?? ""}</td>
+                <td>${l.reason ?? ""}</td>
+                <td>${l.data ?? ""}</td>
+                <td>${l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : ""}</td>
+            `;
+
+            table.appendChild(row);
+        });
+
+    } catch (err) {
+        console.log("Dashboard load failed", err);
+    }
 }
 
 /* -------------------------
-   CLEAR
+   CLEAR LOGS
 --------------------------*/
 async function clearLogs() {
-    await fetch(API + "/clear", { method: "POST" });
+    await fetch(`${API}/clear`, { method: "POST" });
     load();
 }
 
-/* -------------------------
-   BUTTON FIX
---------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
-    document
-        .getElementById("codeLoginBtn")
+    document.getElementById("codeLoginBtn")
         .addEventListener("click", loginWithCode);
 });
 </script>

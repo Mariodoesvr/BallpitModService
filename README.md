@@ -1,4 +1,4 @@
-# 🛡 The Ballpit — Moderation Dashboard
+# The Ballpit — Moderation Dashboard
 
 A real-time moderation system for **The Ballpit** multiplayer game.
 
@@ -10,24 +10,6 @@ This system handles:
 - ☁️ Render deployment ready
 - 🎮 Unity / server log ingestion
 - (Optional) PlayFab integration
-
----
-
-# 📁 Project Structure
-
-ballpit-mod-dash/
-│
-├── server/
-│   ├── index.js        # Backend API server
-│   ├── db.js           # SQLite database layer
-│   ├── websocket.js    # Real-time updates
-│   ├── playfab.js      # Optional PlayFab integration
-│
-├── client/
-│   └── index.html      # Moderator dashboard UI
-│
-├── package.json
-└── README.md
 
 ---
 
@@ -86,11 +68,6 @@ const client = new OAuth2Client("YOUR_GOOGLE_CLIENT_ID");
 const MOD_EMAILS = [
   "your@email.com"
 ];
-
----
-
-## Secret Login Code
-const SECRET_CODE = "dev123";
 
 ---
 
@@ -176,6 +153,3 @@ const API = "https://your-app.onrender.com";
 - Audit log history viewer
 
 ---
-
-# 🛡 Project
-**The Ballpit**

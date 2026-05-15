@@ -3,13 +3,12 @@
 A real-time moderation system for **The Ballpit** multiplayer game.
 
 This system handles:
-- 🔐 Google moderator login
-- 🔑 Secret code fallback login
+- 🔐 Google moderator 
 - 📡 Live moderation feed (WebSockets)
 - 🗄 Persistent SQLite log database
 - ☁️ Render deployment ready
 - 🎮 Unity / server log ingestion
-- (Optional) PlayFab integration
+- PlayFab integration
 
 ---
 

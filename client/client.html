@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
 <meta charset="UTF-8">
-<title>The Ballpit ModerationDash</title>
+<title>Ballpit Moderation</title>
 
 <style>
 body {
@@ -43,7 +43,7 @@ td, th {
 
 <div id="dashboard">
 
-    <h2>🛡 The Ballpit Moderation</h2>
+    <h2>The Ballpit Moderation</h2>
 
     <div class="card">
         <h3>Total Logs: <span id="totalLogs">0</span></h3>
@@ -71,71 +71,7 @@ td, th {
 
 </div>
 
-<script>
-const API = "https://ballpitmodservice.onrender.com";
-
-/* -------------------------
-   WEBSOCKET (REALTIME)
---------------------------*/
-const socket = new WebSocket("wss://ballpitmodservice.onrender.com");
-
-socket.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-
-    if (msg.type === "log") {
-        addLog(msg.data);
-    }
-};
-
-/* -------------------------
-   LOAD INITIAL DATA
---------------------------*/
-async function load() {
-    const logs = await fetch(API + "/logs").then(r => r.json());
-    const stats = await fetch(API + "/stats").then(r => r.json());
-
-    document.getElementById("totalLogs").innerText = stats.totalLogs;
-
-    document.getElementById("stats").innerText =
-        JSON.stringify(stats.breakdown, null, 2);
-
-    logs.forEach(addLog);
-}
-
-load();
-
-/* -------------------------
-   ADD LOG
---------------------------*/
-function addLog(l) {
-    const table = document.getElementById("logTable");
-
-    const row = document.createElement("tr");
-
-    const cls =
-        l.type?.includes("block") ? "block" :
-        l.type?.includes("report") ? "report" :
-        "accept";
-
-    row.innerHTML = `
-        <td class="${cls}">${l.type}</td>
-        <td>${l.playerName}</td>
-        <td>${l.reason}</td>
-        <td>${l.data || ""}</td>
-        <td>${l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : ""}</td>
-    `;
-
-    table.prepend(row);
-}
-
-/* -------------------------
-   CLEAR LOGS
---------------------------*/
-async function clearLogs() {
-    await fetch(API + "/clear", { method: "POST" });
-    document.getElementById("logTable").innerHTML = "";
-}
-</script>
+<script src="clientWS.js" </script>
 
 </body>
 </html>
